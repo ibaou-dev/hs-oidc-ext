@@ -18,7 +18,7 @@ Everything CI runs, locally:
 ruff check .            # lint
 ruff format --check .   # formatting
 mypy                    # type-check src/
-pytest                  # 42 offline, deterministic tests
+pytest                  # 58 offline, deterministic tests
 ```
 
 `pre-commit run --all-files` runs the same checks plus whitespace/EOF/YAML hooks

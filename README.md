@@ -70,6 +70,33 @@ curl -H "Authorization: Bearer $JWT" http://localhost:8888/v1/default/banks
 Full walk-through: [`examples/README.md`](examples/README.md) and the
 [Keycloak provider guide](docs/providers/keycloak.md).
 
+## Try it from scratch — Claude Code over OIDC in 3 commands
+
+Stands up **Keycloak** (realm + two users: `alice`/`alice`, `bob`/`bob`) and an
+OIDC-protected Hindsight, then lets Claude Code log in through the browser — no
+pasted token, auto-refreshed. Needs Docker, `curl`, and `claude`.
+
+```bash
+git clone https://github.com/ibaou-dev/hs-oidc-ext && cd hs-oidc-ext
+
+# 1. bring up Keycloak + an OIDC-protected Hindsight + the MCP metadata shim
+docker compose -f examples/compose.yaml -f examples/compose.mcp.yaml up -d
+
+# 2. configure Keycloak for MCP OAuth (DCR + token audience) — idempotent
+examples/mcp/setup-mcp-oauth.sh
+
+# 3. add it to Claude Code and sign in
+claude mcp add --transport http hindsight http://localhost:8899/mcp
+#    then inside Claude Code:  /mcp  → Authenticate   (a browser opens → log in as alice)
+```
+
+`claude mcp list` shows **✔ Connected**. Add more users in the Keycloak admin
+console (`http://localhost:8280/admin`, `admin`/`admin`). Full walk-through,
+security notes, and troubleshooting: **[docs/mcp-oauth.md](docs/mcp-oauth.md)**.
+
+For non-MCP clients (SDKs, scripts, agents), the [`hs-oidc` CLI](docs/client-configuration.md)
+gets + refreshes tokens: `hs-oidc login <url>` / `hs-oidc token <url>`.
+
 ## Configuration at a glance
 
 The only required setting is the issuer; everything else has a sensible default.
