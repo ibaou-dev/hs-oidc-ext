@@ -109,6 +109,35 @@ zero-config option; pre-registration is the locked-down one.
 > Then run `/mcp`, choose **Authenticate**, and log in. Your session refreshes
 > automatically; if it ever expires, `/mcp` will prompt you to re-authenticate.
 
+# Relationship to Hindsight's official Claude Code plugin
+
+Hindsight's [official Claude Code integration](https://hindsight.vectorize.io/sdks/integrations/claude-code)
+is a **plugin** (`claude plugin install hindsight-memory`) that, by default, runs a
+**local** `hindsight-embed` daemon (stdio) — personal memory, no server, no auth.
+It can point at a remote server via `~/.hindsight/claude-code.json`
+(`hindsightApiUrl` + an optional **static** `hindsightApiToken`).
+
+That is a different world from this one. Two connection models:
+
+| | Official plugin | This extension (OIDC) |
+|---|---|---|
+| Transport | local **stdio** daemon → remote REST | Claude Code → remote **`/mcp`** (HTTP) directly |
+| Auth to a remote server | a **static pasted token** (`hindsightApiToken`) | **browser OAuth** (SSO), auto-refreshed |
+| Best for | local personal memory, or a trusted static token | **central, governed, multi-user** memory with SSO |
+
+**The important warning for users:** if you point the *official plugin* at an
+OIDC-protected central server using a static `hindsightApiToken`, it will **break
+when that token expires** — the plugin does not refresh OAuth tokens. For an
+OIDC-protected central Hindsight, use **this** path instead:
+
+```
+claude mcp add --transport http hindsight https://memory.example.com/mcp
+# then /mcp → Authenticate   (browser SSO, auto-refresh)
+```
+
+So: **local/personal → the plugin; central/governed/SSO → direct HTTP MCP + OAuth
+(here).** They coexist; pick by deployment, not preference.
+
 # Troubleshooting (failure → cause)
 
 | Symptom | Cause / fix |
