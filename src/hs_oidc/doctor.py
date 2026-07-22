@@ -133,6 +133,7 @@ def doctor(args) -> int:
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(prog="hs-oidc", description="Hindsight OIDC helper")
     sub = p.add_subparsers(dest="cmd", required=True)
+
     d = sub.add_parser("doctor", help="probe an OIDC issuer and resolve claim mapping")
     d.add_argument("issuer", help="OIDC issuer URL (e.g. https://id.example.com/realms/acme)")
     d.add_argument("--profile", default="generic", choices=sorted(PROFILES), help="vendor profile")
@@ -143,9 +144,41 @@ def main(argv: list[str] | None = None) -> int:
     d.add_argument("--username-claim", dest="username_claim")
     d.add_argument("--roles-transform", dest="roles_transform")
     d.add_argument("--client-id", dest="client_id", help="for <client> in resource_access.<client>.roles")
+
+    li = sub.add_parser("login", help="browser (PKCE) sign-in; caches tokens for a server")
+    li.add_argument("server_url", help="the Hindsight server URL (e.g. http://localhost:8899)")
+    li.add_argument("--client-id", dest="client_id", required=True, help="a public OAuth client id")
+    li.add_argument("--issuer", help="authorization server (skips discovery)")
+    li.add_argument("--port", type=int, default=8765, help="loopback callback port (default 8765)")
+    li.add_argument("--no-browser", action="store_true", help="print the URL instead of opening a browser")
+
+    tk = sub.add_parser("token", help="print a fresh access token (refresh, or machine-to-machine)")
+    tk.add_argument("server_url", help="the Hindsight server URL")
+    tk.add_argument("--client-id", dest="client_id", help="client id (with --client-secret = machine-to-machine)")
+    tk.add_argument("--client-secret", dest="client_secret", help="client secret → client-credentials grant")
+    tk.add_argument("--issuer", help="authorization server (skips discovery)")
+
+    lo = sub.add_parser("logout", help="clear cached tokens for a server")
+    lo.add_argument("server_url")
+
     args = p.parse_args(argv)
     if args.cmd == "doctor":
         return doctor(args)
+    if args.cmd == "login":
+        from . import login as _login
+
+        _login.login(args.server_url, args.client_id, args.port, args.issuer, no_browser=args.no_browser)
+        return 0
+    if args.cmd == "token":
+        from . import login as _login
+
+        print(_login.token(args.server_url, args.client_id, args.client_secret, args.issuer))
+        return 0
+    if args.cmd == "logout":
+        from . import login as _login
+
+        _login.logout(args.server_url)
+        return 0
     return 1
 
 

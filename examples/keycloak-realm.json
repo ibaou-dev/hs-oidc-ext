@@ -52,6 +52,17 @@
           }
         }
       ]
+    },
+    {
+      "clientId": "hs-oidc-cli",
+      "name": "hs-oidc client CLI (public, PKCE)",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": ["http://localhost:*/callback", "http://127.0.0.1:*/callback"],
+      "attributes": { "pkce.code.challenge.method": "S256", "post.logout.redirect.uris": "+" }
     }
   ],
   "users": [

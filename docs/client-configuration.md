@@ -42,6 +42,33 @@ HINDSIGHT_API_TENANT_DEFAULT_TENANT=main     # or multi-tenant via the tenant cl
 From now on the backend answers `401` without a token and routes an authenticated
 caller to its tenant's schema.
 
+# The `hs-oidc` token helper (no manual tokens)
+
+For **non-MCP** clients (SDKs, scripts, agents), the bundled `hs-oidc` CLI gets a
+token, caches it, and keeps it fresh — one command, no pasting. It **discovers**
+the authorization server from the server URL (the same RFC 9728 metadata an MCP
+host uses), so there's nothing to configure.
+
+```bash
+# interactive human — browser sign-in once (PKCE), tokens cached + auto-refreshed
+hs-oidc login  https://memory.example.com --client-id hs-oidc-cli
+# then, as a credential source anywhere — always prints a VALID (refreshed) token:
+hs-oidc token  https://memory.example.com
+
+# unattended agent (machine-to-machine) — no browser
+hs-oidc token  https://memory.example.com --client-id agent --client-secret "$SECRET"
+
+hs-oidc logout https://memory.example.com
+```
+
+Use it wherever a bearer token is needed — e.g. `api_key=$(hs-oidc token <url>)`,
+or a Claude Code HTTP server's `headersHelper`. Note: for Claude Code's **own MCP**
+connection you don't need this — it does the OAuth flow itself (see
+[mcp-oauth.md](mcp-oauth.md)). The CLI is for everything else.
+
+The manual grant flows below are what the CLI automates — useful if you're wiring
+a client by hand.
+
 # Getting a token
 
 ## Interactive users (authorization-code flow)
