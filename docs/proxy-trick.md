@@ -44,6 +44,30 @@ wrapper page *it owns* — a **non-sticky** header (username / tenant) above an
 `<iframe>` of the real control-plane. Everything else is proxied straight through.
 See ADR-009 in [design-decisions.md](design-decisions.md).
 
+# The embedded control-plane needs a dataplane key
+
+oauth2-proxy authenticates the **user**, but the bundled control-plane is a
+*separate SPA* that makes its own calls to the (now protected) dataplane API —
+with **one static key**, not the user's token. If that key isn't accepted, the
+embedded UI shows *"Enter your access key / Authentication failed: Missing bearer
+token"* even though you are logged in.
+
+Fix: give the extension the same key the control-plane uses, via the internal
+service-key bypass (see [ADR-007](design-decisions.md)):
+
+```bash
+HINDSIGHT_API_TENANT_INTERNAL_API_KEY=cp-internal-service-key-demo   # == the CP's key
+HINDSIGHT_API_TENANT_INTERNAL_SCHEMA=tenant_acme                     # schema the UI browses
+HINDSIGHT_CP_DATAPLANE_API_KEY=cp-internal-service-key-demo          # the CP's dataplane key
+```
+
+Consequence: the UI browses one **fixed schema** (`INTERNAL_SCHEMA`) for everyone
+who signs in — a shared memory space, consistent with the "authenticated = full
+access" model. Per-user schemas in the UI would require the CP to forward each
+user's OIDC token as its dataplane key, which the stock CP does not do (that is the
+future "tap into the control-plane" work). The [example stack](../examples/compose.yaml)
+sets these three variables already.
+
 # Sequence
 
 ```mermaid

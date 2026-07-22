@@ -61,6 +61,14 @@ services:
       # accounts) fall back to 'main'. KNOWN_TENANTS pre-provisions on boot.
       HINDSIGHT_API_TENANT_KNOWN_TENANTS: "acme,main"
       HINDSIGHT_API_TENANT_DEFAULT_TENANT: "main"
+      # The bundled control-plane UI is a separate SPA that calls the (now
+      # protected) dataplane with ONE static key, not a user token. Give the
+      # extension that key so the UI can browse a fixed schema without prompting
+      # for an access key. (Without this, the embedded UI shows "Enter your
+      # access key / Missing bearer token".)
+      HINDSIGHT_API_TENANT_INTERNAL_API_KEY: "cp-internal-service-key-demo"
+      HINDSIGHT_API_TENANT_INTERNAL_SCHEMA: "tenant_acme"
+      HINDSIGHT_CP_DATAPLANE_API_KEY: "cp-internal-service-key-demo"
     volumes:
       - ../src/hs_oidc:/ext/hs_oidc:ro
       - hs-pg:/home/hindsight/.pg0

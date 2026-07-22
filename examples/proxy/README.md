@@ -28,6 +28,15 @@ open http://localhost:4280      # → Keycloak login → control-plane, with a h
 Log in as `alice` / `alice`. The header shows the signed-in user + tenant; **Sign
 out** performs RP-initiated logout at Keycloak.
 
+> **Why the embedded UI doesn't ask for an access key:** the control-plane is a
+> separate SPA that calls the protected dataplane with a *static* key, not your
+> token. The [example stack](../compose.yaml) sets
+> `HINDSIGHT_API_TENANT_INTERNAL_API_KEY` + `HINDSIGHT_CP_DATAPLANE_API_KEY` (the
+> internal service-key bypass, [ADR-007](../../docs/design-decisions.md)) so the UI
+> browses a fixed schema (`tenant_acme`) without prompting. Omit them and you'll
+> get *"Enter your access key / Missing bearer token"* inside the frame. See
+> [proxy-trick.md](../../docs/proxy-trick.md).
+
 ## How it works
 
 ```
