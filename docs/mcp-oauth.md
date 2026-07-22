@@ -138,6 +138,39 @@ claude mcp add --transport http hindsight https://memory.example.com/mcp
 So: **local/personal → the plugin; central/governed/SSO → direct HTTP MCP + OAuth
 (here).** They coexist; pick by deployment, not preference.
 
+# Relationship to Hindsight's Cloudflare OAuth proxy
+
+Hindsight ships an
+[`cloudflare-oauth-proxy`](https://github.com/vectorize-io/hindsight/tree/main/hindsight-integrations/cloudflare-oauth-proxy)
+(a Cloudflare Worker, since v0.5.1) that also puts OAuth 2.1 in front of a
+self-hosted `/mcp` — cloud clients like Gemini Spark and claude.ai *require* that
+handshake. It solves the same *client-facing* problem this extension does, so it's
+a fair question whether one replaces the other. It does not, because of what sits
+**behind** the handshake. From its own source and config:
+
+- login is a **single shared password** (`SESSION_SECRET`);
+- the user identity is **one hardcoded email** (`userId: ALLOWED_EMAIL` for every
+  session);
+- downstream it swaps in **one static Hindsight API token** for everyone
+  (`Authorization: Bearer ${HINDSIGHT_API_TOKEN}`) — so the server sees a single
+  identity and **one shared memory space**;
+- it requires **Cloudflare** (account, domain, Tunnel, Worker, KV).
+
+| | `cloudflare-oauth-proxy` | this extension + an IdP |
+|---|---|---|
+| For | a **solo** self-hoster's personal memory | a **multi-user, governed** team |
+| Login / identity | one password → one hardcoded email | real OIDC — each person as themselves |
+| Downstream to Hindsight | **one static shared token → one memory space** | **per-user token → per-user tenant/schema** |
+| Multi-tenancy, roles | none | tenant claim → schema; roles for RBAC |
+| Identity provider | none (the Worker *is* the gate) | any OIDC provider (Keycloak, Auth0, …) |
+| Infrastructure | Cloudflare-locked | any Docker host |
+
+The two are complementary: the Cloudflare Worker is a great **single-identity**
+front door for one person already on Cloudflare; this extension delegates the
+handshake to a **real IdP** so the token carries genuine per-user identity that
+drives tenancy (and, later, RBAC) — with no Cloudflare dependency. Same pattern in
+front, very different backend.
+
 # Troubleshooting (failure → cause)
 
 | Symptom | Cause / fix |
