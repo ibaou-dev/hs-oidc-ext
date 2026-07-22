@@ -61,6 +61,12 @@ hs-oidc token  https://memory.example.com --client-id agent --client-secret "$SE
 hs-oidc logout https://memory.example.com
 ```
 
+The browser flow needs a public OAuth client whose redirect URI matches the CLI's
+loopback port. The example realm registers `hs-oidc-cli` for the default port
+**8765** (Keycloak does not allow a `*` wildcard in the port), so `--client-id
+hs-oidc-cli` with the default `--port` just works; if you change `--port`, register
+that exact `http://localhost:<port>/callback` on the client.
+
 Use it wherever a bearer token is needed — e.g. `api_key=$(hs-oidc token <url>)`,
 or a Claude Code HTTP server's `headersHelper`. Note: for Claude Code's **own MCP**
 connection you don't need this — it does the OAuth flow itself (see
