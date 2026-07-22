@@ -2,13 +2,29 @@
 
 A complete, runnable stack: a Keycloak realm + a Hindsight server whose API
 requires an OIDC token. Ports are non-standard (Keycloak `8280`, API `8893`, UI
-`9998`) so it won't collide with anything.
+`9998`) to avoid common defaults.
+
+> **Port already in use?** Every host port is overridable — the whole Hindsight
+> service (API *and* UI share one container) fails to start if either is taken:
+> ```bash
+> HS_KC_PORT=18280 HS_API_PORT=18893 HS_UI_PORT=19998 docker compose -f examples/compose.yaml up -d
+> ```
+> `HS_KC_PORT` also feeds the issuer, so it stays consistent. If you remap ports,
+> set the same values in the commands below (and pass `UPSTREAM` to the proxy).
 
 ## 1. Bring it up
 
 ```bash
 docker compose -f examples/compose.yaml up -d
-# wait ~30s for Keycloak to import the realm and Hindsight to migrate
+```
+
+Wait for both services — Keycloak imports the realm, then Hindsight migrates
+schemas (the API refuses connections for a few extra seconds after Keycloak is up):
+
+```bash
+until curl -sf http://localhost:8280/realms/hindsight/.well-known/openid-configuration >/dev/null; do sleep 3; done
+until [ "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8893/v1/default/banks)" != 000 ]; do sleep 2; done
+echo "ready"
 ```
 
 The realm `hindsight` is imported with a confidential client `hindsight`
@@ -31,6 +47,16 @@ TOKEN=$(curl -s -X POST "$ISS/protocol/openid-connect/token" \
 
 # With a token → 200, routed to the caller's tenant schema (tenant_acme)
 curl -s -H "Authorization: Bearer $TOKEN" http://localhost:8893/v1/default/banks | jq
+
+# Retain a memory...
+curl -s -X POST http://localhost:8893/v1/default/banks/notes/memories \
+  -H "Authorization: Bearer $TOKEN" -H 'content-type: application/json' \
+  -d '{"items":[{"content":"Alice prefers dark roast","context":"pref"}]}' | jq
+
+# ...then recall it (POST .../memories/recall — results are under `.results`)
+curl -s -X POST http://localhost:8893/v1/default/banks/notes/memories/recall \
+  -H "Authorization: Bearer $TOKEN" -H 'content-type: application/json' \
+  -d '{"query":"what does Alice drink?"}' | jq '.results'
 ```
 
 ## 4. Inspect what the token carries

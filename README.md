@@ -129,10 +129,20 @@ why the identity header is an iframe wrapper — a React 19 finding).
 
 ## Develop
 
+Python 3.11–3.13 (the range CI covers). With pip:
+
 ```bash
 pip install -e ".[dev]"
 pre-commit install
 ruff check . && ruff format --check . && mypy && pytest    # the full gate
+```
+
+...or with [uv](https://docs.astral.sh/uv/) (useful if your system Python is newer
+than 3.13):
+
+```bash
+uv venv --python 3.13 && uv pip install -e ".[dev]"
+.venv/bin/ruff check . && .venv/bin/mypy && .venv/bin/pytest
 ```
 
 Tests are offline and deterministic (throwaway RSA keypair, stubbed JWKS); a

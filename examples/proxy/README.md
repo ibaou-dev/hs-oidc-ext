@@ -11,10 +11,14 @@ Assumes the example stack is up (`examples/compose.yaml`), so the control-plane 
 at `http://localhost:9998`.
 
 ```bash
-# 1. Start the SSO shell (host process) — wraps the real UI with an identity header
+# 1. Start the SSO shell (host process) — wraps the real UI with an identity header.
+#    UPSTREAM must point at the control-plane UI port (HS_UI_PORT from the example
+#    stack — default 9998; use your override if you remapped it).
 UPSTREAM=http://127.0.0.1:9998 python3 examples/proxy/sso_shell_proxy.py 5155 &
 
-# 2. Start oauth2-proxy (login gate) in front of the shell
+# 2. Start oauth2-proxy (login gate) in front of the shell.
+#    If you remapped the Keycloak port, pass it through so the issuer matches:
+#    HS_KC_PORT=18280 docker compose -f examples/proxy/compose.yaml up -d
 docker compose -f examples/proxy/compose.yaml up -d
 
 # 3. Browse

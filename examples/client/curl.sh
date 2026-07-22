@@ -17,7 +17,12 @@ TOKEN=$(curl -s -X POST "$ISS/protocol/openid-connect/token" \
 echo "3) with token → expect 200"
 curl -s -o /dev/null -w '   %{http_code}\n' -H "Authorization: Bearer $TOKEN" "$API/v1/default/banks"
 
-echo "4) retain + recall"
+echo "4) retain"
 curl -s -X POST "$API/v1/default/banks/notes/memories" \
   -H "Authorization: Bearer $TOKEN" -H 'content-type: application/json' \
   -d '{"items":[{"content":"Alice prefers dark roast","context":"pref"}]}' | jq -r '.success // .'
+
+echo "5) recall (results are under .results)"
+curl -s -X POST "$API/v1/default/banks/notes/memories/recall" \
+  -H "Authorization: Bearer $TOKEN" -H 'content-type: application/json' \
+  -d '{"query":"what does Alice drink?"}' | jq '.results'
