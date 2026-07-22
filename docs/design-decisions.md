@@ -147,6 +147,30 @@ layer. Not required for backend protection (the token already protects the API).
 
 ---
 
+## ADR-011 — A metadata shim for MCP OAuth (FastMCP shadowing)
+
+**Context.** For an MCP host (Claude Code) to log a user in via the browser, the
+server must serve RFC 9728 Protected Resource Metadata at the canonical well-known
+path. Hindsight embeds FastMCP, which serves an **empty** metadata document there
+and offers no configuration hook — shadowing the correct metadata this extension
+publishes at `/ext/oauth-protected-resource`. Verified live: the host reads the
+empty canonical doc, can't find the authorization server, and fails. An
+`HttpExtension` can't fix this — it mounts only under `/ext/`, so it can neither
+override `/mcp/.well-known/*` nor serve the root well-known paths.
+
+**Decision.** Ship a small reverse-proxy **shim** (Caddy) that routes the canonical
+protected-resource-metadata paths to this extension's endpoint (single source of
+truth) and streams everything else — including `/mcp` — through to Hindsight, which
+still validates the token via the tenant extension. Point the MCP host at the shim.
+
+**Consequences.** Real Claude Code completes the full browser OAuth flow and
+connects. The shim is one small container; the longer-term fix is an upstream
+Hindsight change to configure FastMCP's auth natively. Also surfaced the Keycloak
+requirements (DCR enablement, `offline_access` role, an `aud` mapper on the `basic`
+scope) — see [mcp-oauth.md](mcp-oauth.md).
+
+---
+
 ## ADR-010 — src layout + a strict, pragmatic quality gate
 
 **Context.** A publishable extension needs to pass the usual bars without fighting

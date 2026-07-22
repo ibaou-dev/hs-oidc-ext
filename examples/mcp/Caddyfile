@@ -1,0 +1,36 @@
+# MCP OAuth metadata shim.
+#
+# Hindsight's embedded FastMCP serves EMPTY OAuth metadata at the canonical
+# well-known paths and offers no hook to configure it — which shadows the correct
+# metadata our extension publishes at /ext/oauth-protected-resource. An MCP host
+# (Claude Code) that reads the canonical path therefore can't find the real
+# authorization server (Keycloak) and fails.
+#
+# This shim sits in front of Hindsight and routes the canonical
+# protected-resource-metadata paths to our extension's endpoint (single source of
+# truth), while streaming everything else — including /mcp — straight through.
+{
+	admin off
+	auto_https off
+}
+
+:80 {
+	# Override FastMCP's empty metadata: serve OURS (which names Keycloak as the AS).
+	@protected_resource_metadata {
+		path /mcp/.well-known/oauth-protected-resource
+		path /.well-known/oauth-protected-resource
+		path /.well-known/oauth-protected-resource/mcp
+	}
+	handle @protected_resource_metadata {
+		rewrite * /ext/oauth-protected-resource
+		reverse_proxy hindsight:8888
+	}
+
+	# Everything else (incl. /mcp JSON-RPC + SSE) → Hindsight, unbuffered so
+	# streamed MCP responses flush immediately.
+	handle {
+		reverse_proxy hindsight:8888 {
+			flush_interval -1
+		}
+	}
+}

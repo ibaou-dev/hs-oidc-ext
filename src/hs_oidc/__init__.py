@@ -10,15 +10,20 @@ Provider-agnostic — point it at any compliant OIDC issuer and pick a profile
   shared verifier a downstream RBAC extension can reuse.
 """
 
+from ._metadata import build_resource_metadata, www_authenticate
 from ._oidc import OidcVerifier, get_verifier
 from .claims import PROFILES, ClaimMap, build_claim_map
+from .http import OIDCDiscoveryExtension
 from .tenant import OIDCTenantExtension
 
 __all__ = [
     "PROFILES",
     "ClaimMap",
+    "OIDCDiscoveryExtension",
     "OIDCTenantExtension",
     "OidcVerifier",
     "build_claim_map",
+    "build_resource_metadata",
     "get_verifier",
+    "www_authenticate",
 ]

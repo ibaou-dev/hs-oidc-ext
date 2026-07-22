@@ -42,6 +42,17 @@ The only strictly required value is the **issuer**.
 | `HINDSIGHT_API_OIDC_ROLES_TRANSFORM` | per profile | `array` / `space_delimited` / `csv` / `map_keys`. |
 | `HINDSIGHT_API_OIDC_CLIENT_ID` | unset | Substituted for `<client>` in a roles path (Keycloak client roles). |
 
+## MCP OAuth discovery (`HINDSIGHT_API_OIDC_*`)
+
+Enable an MCP host (Claude Code) to discover the login — see [mcp-oauth.md](mcp-oauth.md).
+Requires loading `HINDSIGHT_API_HTTP_EXTENSION=hs_oidc.http:OIDCDiscoveryExtension`.
+
+| Variable | Default | Description |
+|---|---|---|
+| `HINDSIGHT_API_OIDC_PUBLIC_URL` | unset | The server's browser-reachable base URL (the **shim** URL, e.g. `http://localhost:8899`). Setting it turns on discovery: the RFC 9728 metadata + the `resource_metadata` pointer on the 401. |
+| `HINDSIGHT_API_OIDC_RESOURCE` | `{PUBLIC_URL}/mcp` | Canonical resource identifier (the MCP URL). |
+| `HINDSIGHT_API_OIDC_SCOPES` | `openid profile email` | Scopes advertised in the metadata; include `offline_access` so an MCP host registers for a refresh token. |
+
 Legacy `HINDSIGHT_API_TENANT_{ISSUER,JWKS_URL,AUDIENCE,TENANT_CLAIM}` names are
 still honored as fallbacks.
 

@@ -33,6 +33,7 @@ import jwt as pyjwt
 from hindsight_api.extensions.tenant import AuthenticationError
 from jwt import PyJWKClient
 
+from ._metadata import www_authenticate
 from .claims import ClaimMap, build_claim_map
 
 logger = logging.getLogger(__name__)
@@ -97,7 +98,7 @@ class OidcVerifier:
         if not token:
             raise AuthenticationError(
                 "Missing bearer token",
-                headers={"WWW-Authenticate": 'Bearer realm="hindsight"'},
+                headers={"WWW-Authenticate": www_authenticate()},
             )
 
         now = time.time()
@@ -122,7 +123,7 @@ class OidcVerifier:
         except pyjwt.ExpiredSignatureError as e:
             raise AuthenticationError(
                 "Token has expired",
-                headers={"WWW-Authenticate": 'Bearer error="invalid_token"'},
+                headers={"WWW-Authenticate": www_authenticate(error="invalid_token")},
             ) from e
         except pyjwt.InvalidAudienceError as e:
             raise AuthenticationError("Invalid token audience") from e

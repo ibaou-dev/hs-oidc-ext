@@ -64,7 +64,7 @@
       "lastName": "Example",
       "credentials": [{ "type": "password", "value": "alice", "temporary": false }],
       "attributes": { "tenant": ["acme"] },
-      "realmRoles": ["admin", "editor"]
+      "realmRoles": ["admin", "editor", "offline_access"]
     },
     {
       "username": "bob",
@@ -75,7 +75,7 @@
       "lastName": "Example",
       "credentials": [{ "type": "password", "value": "bob", "temporary": false }],
       "attributes": { "tenant": ["acme"] },
-      "realmRoles": ["viewer"]
+      "realmRoles": ["viewer", "offline_access"]
     }
   ]
 }

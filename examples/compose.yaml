@@ -57,6 +57,16 @@ services:
       HINDSIGHT_API_OIDC_JWKS_URL: "http://keycloak:8080/realms/hindsight/protocol/openid-connect/certs"
       HINDSIGHT_API_OIDC_AUDIENCE: "hindsight"
       HINDSIGHT_API_OIDC_PROFILE: "keycloak"
+      # --- MCP OAuth discovery (lets Claude Code & other MCP hosts log in via browser) ---
+      # Serves RFC 9728 metadata at /ext/oauth-protected-resource and points the
+      # MCP 401's WWW-Authenticate at it. PUBLIC_URL is how the host reaches this
+      # server; RESOURCE is the canonical MCP URL (defaults to {PUBLIC_URL}/mcp).
+      HINDSIGHT_API_HTTP_EXTENSION: "hs_oidc.http:OIDCDiscoveryExtension"
+      HINDSIGHT_API_OIDC_PUBLIC_URL: "http://localhost:8893"
+      # Advertise offline_access so a self-registering MCP host (Claude Code DCR)
+      # registers for a refresh token — otherwise its short-lived token expires and
+      # the session breaks. This is the scope set the discovery document publishes.
+      HINDSIGHT_API_OIDC_SCOPES: "openid profile email offline_access"
       # Users carry tenant=acme; tokens without a tenant claim (e.g. service
       # accounts) fall back to 'main'. KNOWN_TENANTS pre-provisions on boot.
       HINDSIGHT_API_TENANT_KNOWN_TENANTS: "acme,main"

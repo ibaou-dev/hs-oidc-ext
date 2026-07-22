@@ -10,6 +10,7 @@ this bundle holds the durable reference material.
 - [Client & central-server-mode setup](client-configuration.md) — protecting the backend; SDK/CLI/agent tokens `Guide`
 - [Design decisions (ADRs)](design-decisions.md) — every architectural choice `Reference`
 - [The proxy trick](proxy-trick.md) — optional SSO for the web UI `Component`
+- [MCP OAuth](mcp-oauth.md) — browser login from Claude Code & other MCP hosts `Guide`
 - [Diagrams](diagrams/sequences-and-flows.md) — sequence & flow (mermaid) `Reference`
 
 ## Providers

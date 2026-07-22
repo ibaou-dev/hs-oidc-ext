@@ -120,6 +120,7 @@ why the identity header is an iframe wrapper — a React 19 finding).
 ## Documentation
 
 - [Configuration reference](docs/configuration.md) — every setting + profiles
+- [MCP OAuth](docs/mcp-oauth.md) — browser login from Claude Code & other MCP hosts (verified live)
 - [Client & central-server-mode setup](docs/client-configuration.md) — protecting the backend; SDK/CLI/agent tokens
 - [Design decisions (ADRs)](docs/design-decisions.md) — every choice, with rationale
 - [The proxy trick](docs/proxy-trick.md) — SSO for the web UI

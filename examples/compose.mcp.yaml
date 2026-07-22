@@ -1,0 +1,28 @@
+# Overlay that adds the MCP OAuth metadata shim in front of Hindsight, so MCP
+# hosts (Claude Code) can discover the login. Use WITH the base example:
+#
+#   docker compose -f examples/compose.yaml -f examples/compose.mcp.yaml up -d
+#
+# Then point the MCP host at the SHIM's URL (port 8899), not Hindsight directly:
+#   claude mcp add --transport http hindsight http://localhost:8899/mcp
+#
+# See docs/mcp-oauth.md for the full walk-through.
+name: hs-oidc-example
+
+services:
+  # Re-point discovery at the shim's public URL so the metadata `resource` and the
+  # 401 WWW-Authenticate pointer both use :8899 (what the host actually connects to).
+  hindsight:
+    environment:
+      HINDSIGHT_API_OIDC_PUBLIC_URL: "http://localhost:8899"
+
+  mcp-proxy:
+    image: caddy:2-alpine
+    container_name: hs-oidc-example-mcp-proxy
+    depends_on: [hindsight]
+    ports:
+      - "127.0.0.1:8899:80"
+    volumes:
+      - ./mcp/Caddyfile:/etc/caddy/Caddyfile:ro
+    networks: [hsnet]
+    restart: unless-stopped

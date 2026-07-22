@@ -16,3 +16,8 @@
   resolution, tenant mapping (mermaid).
 * **Creation**: [Keycloak provider guide](providers/keycloak.md) and
   [Fresh-setup runbook](runbooks/fresh-setup-keycloak.md).
+* **Creation**: [MCP OAuth](mcp-oauth.md) + ADR-011 — browser login from an MCP host
+  (Claude Code) via RFC 9728 discovery. Adds `OIDCDiscoveryExtension`, a Caddy
+  metadata **shim** (FastMCP serves empty canonical metadata with no config hook),
+  and a Keycloak setup script (DCR + `aud` on the `basic` scope). Verified
+  end-to-end with real Claude Code 2.1.217 → ✔ Connected.
