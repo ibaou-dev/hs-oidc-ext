@@ -1,0 +1,70 @@
+# Example: a fresh Keycloak + an OIDC-protected Hindsight server.
+#
+# `docker compose -f examples/compose.yaml up -d` brings up:
+#   - Keycloak (realm auto-imported) on http://localhost:8280
+#   - Hindsight API on http://localhost:8893, control-plane UI on http://localhost:9998
+#     with the hs-oidc TenantExtension loaded (the API now requires an OIDC token).
+#
+# Ports are deliberately non-standard so this never collides with other stacks.
+# The extension source is mounted read-only — no PyPI needed for a fresh clone.
+# LLM provider = mock (no GPU / no API key) so it runs anywhere.
+#
+# See examples/README.md for the full walk-through.
+name: hs-oidc-example
+
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.4
+    container_name: hs-oidc-example-keycloak
+    command: ["start-dev", "--import-realm", "--http-port=8080"]
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_HOSTNAME_STRICT: "false"
+    ports:
+      - "127.0.0.1:8280:8080"
+    volumes:
+      - ./keycloak-realm.json:/opt/keycloak/data/import/hindsight-realm.json:ro
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/8080 && echo ok >&3"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    networks: [hsnet]
+
+  hindsight:
+    image: ghcr.io/vectorize-io/hindsight:latest
+    container_name: hs-oidc-example-hindsight
+    user: "1000:1000"
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8893:8888"   # API
+      - "127.0.0.1:9998:9999"   # control-plane UI
+    environment:
+      HOME: /home/hindsight
+      HINDSIGHT_API_LLM_PROVIDER: mock
+      PYTHONPATH: /ext
+      # --- hs-oidc: authenticate every request via Keycloak ---
+      HINDSIGHT_API_TENANT_EXTENSION: "hs_oidc.tenant:OIDCTenantExtension"
+      # Browser/host mints tokens at localhost:8280, so iss = localhost:8280;
+      # the container fetches JWKS in-network (issuer/JWKS decoupled).
+      HINDSIGHT_API_OIDC_ISSUER: "http://localhost:8280/realms/hindsight"
+      HINDSIGHT_API_OIDC_JWKS_URL: "http://keycloak:8080/realms/hindsight/protocol/openid-connect/certs"
+      HINDSIGHT_API_OIDC_AUDIENCE: "hindsight"
+      HINDSIGHT_API_OIDC_PROFILE: "keycloak"
+      # Users carry tenant=acme; tokens without a tenant claim (e.g. service
+      # accounts) fall back to 'main'. KNOWN_TENANTS pre-provisions on boot.
+      HINDSIGHT_API_TENANT_KNOWN_TENANTS: "acme,main"
+      HINDSIGHT_API_TENANT_DEFAULT_TENANT: "main"
+    volumes:
+      - ../src/hs_oidc:/ext/hs_oidc:ro
+      - hs-pg:/home/hindsight/.pg0
+    networks: [hsnet]
+
+volumes:
+  hs-pg:
+
+networks:
+  hsnet:

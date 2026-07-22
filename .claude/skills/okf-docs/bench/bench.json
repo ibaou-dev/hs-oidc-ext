@@ -1,0 +1,69 @@
+{
+  "skill": ".claude/skills/okf-docs",
+  "skill_version": "v0.2.0",
+  "mode": "both",
+  "evals": [],
+  "delay": 2,
+  "runs": [
+    {
+      "label": "opus-session",
+      "executor": {
+        "type": "session",
+        "model": "opus"
+      },
+      "judge": {
+        "type": "none"
+      }
+    },
+    {
+      "label": "sonnet-session",
+      "executor": {
+        "type": "session",
+        "model": "sonnet"
+      },
+      "judge": {
+        "type": "none"
+      }
+    },
+    {
+      "label": "haiku-session",
+      "executor": {
+        "type": "session",
+        "model": "claude-haiku-4-5-20251001"
+      },
+      "judge": {
+        "type": "none"
+      }
+    },
+    {
+      "label": "north-mini-code-oss",
+      "executor": {
+        "type": "opencode",
+        "model": "opencode/north-mini-code-free"
+      },
+      "judge": {
+        "type": "none"
+      }
+    },
+    {
+      "label": "deepseek-v4-flash-oss",
+      "executor": {
+        "type": "opencode",
+        "model": "opencode/deepseek-v4-flash-free"
+      },
+      "judge": {
+        "type": "none"
+      }
+    },
+    {
+      "label": "nemotron-3-ultra-oss",
+      "executor": {
+        "type": "opencode",
+        "model": "opencode/nemotron-3-ultra-free"
+      },
+      "judge": {
+        "type": "none"
+      }
+    }
+  ]
+}

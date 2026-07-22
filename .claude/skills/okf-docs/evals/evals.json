@@ -1,0 +1,384 @@
+[
+  {
+    "id": 0,
+    "name": "stack-architecture-spec",
+    "description": "Asks for architecture documentation of the observability stack. Tests that the skill produces an OKF Spec concept (frontmatter + structured body + cross-links + citations) rather than free-form prose.",
+    "prompt": "Can you write up how our observability stack fits together \u2014 Wakapi for the IDE time tracking, LiteLLM as the proxy in front of Anthropic, and Langfuse pulling the traces off it. I want a proper doc the team can read to understand the architecture and how a request flows through it. \n\nOutput requirement: reply with ONLY the complete finished document \u2014 the raw file content from its very first line to its last \u2014 inside a single fenced ```markdown code block. Do not create, write, or edit any files. Do not run any commands or tools. Do not add any explanation before or after the code block.",
+    "trap": "Without the skill the model writes a plain markdown or prose architecture doc with no YAML frontmatter, no type field, no bundle-absolute cross-links, and no Citations section.",
+    "assertions": [
+      {
+        "id": "0.1",
+        "text": "Output contains a YAML frontmatter block delimited by two --- lines",
+        "grading": {
+          "method": "regex",
+          "target": "response",
+          "pattern": "(?m)^---\\s*$[\\s\\S]*?^---\\s*$"
+        }
+      },
+      {
+        "id": "0.2",
+        "text": "Frontmatter declares type: Spec",
+        "grading": {
+          "method": "regex",
+          "target": "response",
+          "pattern": "(?mi)^type:\\s*\"?Spec\\b"
+        }
+      },
+      {
+        "id": "0.3",
+        "text": "Frontmatter includes a title field",
+        "grading": {
+          "method": "regex",
+          "target": "response",
+          "pattern": "(?mi)^title:\\s*\\S"
+        }
+      },
+      {
+        "id": "0.4",
+        "text": "Frontmatter includes a description field",
+        "grading": {
+          "method": "regex",
+          "target": "response",
+          "pattern": "(?mi)^description:\\s*\\S"
+        }
+      },
+      {
+        "id": "0.5",
+        "text": "Body uses a conventional Spec heading (Overview / Requirements / Interfaces)",
+        "grading": {
+          "method": "regex",
+          "any": [
+            {
+              "target": "response",
+              "pattern": "(?mi)^#+\\s*Overview\\b"
+            },
+            {
+              "target": "response",
+              "pattern": "(?mi)^#+\\s*Requirements\\b"
+            },
+            {
+              "target": "response",
+              "pattern": "(?mi)^#+\\s*Interfaces\\b"
+            }
+          ]
+        }
+      },
+      {
+        "id": "0.6",
+        "text": "Contains at least one bundle-absolute cross-link of the form ](/path.md)",
+        "grading": {
+          "method": "regex",
+          "target": "response",
+          "pattern": "\\]\\(/[^)]+\\.md\\)"
+        }
+      },
+      {
+        "id": "0.7",
+        "text": "Cross-links at least one of the three services as a bundle concept (/...wakapi|litellm|langfuse...md)",
+        "grading": {
+          "method": "regex",
+          "target": "response",
+          "pattern": "(?i)\\]\\(/[^)]*(wakapi|litellm|langfuse)[^)]*\\.md\\)"
+        }
+      },
+      {
+        "id": "0.8",
+        "text": "Includes a Citations section heading",
+        "grading": {
+          "method": "regex",
+          "target": "response",
+          "pattern": "(?mi)^#+\\s*Citations\\b"
+        }
+      },
+      {
+        "id": "0.9",
+        "text": "Body explains the request flow across all three services",
+        "grading": {
+          "method": "regex",
+          "all": [
+            {
+              "target": "response",
+              "pattern": "(?i)wakapi"
+            },
+            {
+              "target": "response",
+              "pattern": "(?i)litellm"
+            },
+            {
+              "target": "response",
+              "pattern": "(?i)langfuse"
+            }
+          ]
+        }
+      },
+      {
+        "id": "0.10",
+        "text": "No unfilled template placeholders like <Type> remain",
+        "grading": {
+          "method": "regex",
+          "target": "response",
+          "pattern": "(?m)<[A-Z][a-zA-Z ./|-]{2,}>",
+          "negate": true
+        }
+      },
+      {
+        "id": "0.11",
+        "text": "[LLM-judge] The document is a well-formed OKF concept \u2014 YAML frontmatter followed by a structured markdown body \u2014 not free-form prose.",
+        "grading": {
+          "method": "llm",
+          "regex_fallback": {
+            "target": "response",
+            "pattern": "(?m)^---\\s*$[\\s\\S]*?^type:[\\s\\S]*?^---\\s*$"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": 1,
+    "name": "litellm-key-rotation-runbook",
+    "description": "Asks to document a routine operational procedure. Tests that the skill produces an OKF Runbook concept with Trigger/Steps/Verification/Rollback structure and correct frontmatter.",
+    "prompt": "We need to document the procedure for rotating the LiteLLM master key on the self-hosted proxy without taking the gateway down for the team. Write it down somewhere sensible so on-call can follow it. \n\nOutput requirement: reply with ONLY the complete finished document \u2014 the raw file content from its very first line to its last \u2014 inside a single fenced ```markdown code block. Do not create, write, or edit any files. Do not run any commands or tools. Do not add any explanation before or after the code block.",
+    "trap": "Without the skill the model writes a loose numbered how-to with no YAML frontmatter, no type: Runbook, and no Verification/Rollback sections.",
+    "assertions": [
+      {
+        "id": "1.1",
+        "text": "Output contains a YAML frontmatter block delimited by two --- lines",
+        "grading": {
+          "method": "regex",
+          "target": "response",
+          "pattern": "(?m)^---\\s*$[\\s\\S]*?^---\\s*$"
+        }
+      },
+      {
+        "id": "1.2",
+        "text": "Frontmatter declares type: Runbook",
+        "grading": {
+          "method": "regex",
+          "target": "response",
+          "pattern": "(?mi)^type:\\s*\"?Runbook\\b"
+        }
+      },
+      {
+        "id": "1.3",
+        "text": "Frontmatter includes a title field",
+        "grading": {
+          "method": "regex",
+          "target": "response",
+          "pattern": "(?mi)^title:\\s*\\S"
+        }
+      },
+      {
+        "id": "1.4",
+        "text": "Frontmatter includes a description field",
+        "grading": {
+          "method": "regex",
+          "target": "response",
+          "pattern": "(?mi)^description:\\s*\\S"
+        }
+      },
+      {
+        "id": "1.5",
+        "text": "Body has a Trigger heading",
+        "grading": {
+          "method": "regex",
+          "target": "response",
+          "pattern": "(?mi)^#+\\s*Trigger\\b"
+        }
+      },
+      {
+        "id": "1.6",
+        "text": "Body has a Steps heading",
+        "grading": {
+          "method": "regex",
+          "target": "response",
+          "pattern": "(?mi)^#+\\s*Steps\\b"
+        }
+      },
+      {
+        "id": "1.7",
+        "text": "Body has a Verification heading",
+        "grading": {
+          "method": "regex",
+          "target": "response",
+          "pattern": "(?mi)^#+\\s*Verif"
+        }
+      },
+      {
+        "id": "1.8",
+        "text": "Body has a Rollback heading",
+        "grading": {
+          "method": "regex",
+          "target": "response",
+          "pattern": "(?mi)^#+\\s*Rollback\\b"
+        }
+      },
+      {
+        "id": "1.9",
+        "text": "Steps are an ordered numbered list",
+        "grading": {
+          "method": "regex",
+          "target": "response",
+          "pattern": "(?m)^\\s*1\\.\\s"
+        }
+      },
+      {
+        "id": "1.10",
+        "text": "Contains at least one bundle-absolute cross-link ](/path.md)",
+        "grading": {
+          "method": "regex",
+          "target": "response",
+          "pattern": "\\]\\(/[^)]+\\.md\\)"
+        }
+      },
+      {
+        "id": "1.11",
+        "text": "No unfilled template placeholders like <Task name> remain",
+        "grading": {
+          "method": "regex",
+          "target": "response",
+          "pattern": "(?m)<[A-Z][a-zA-Z ./|-]{2,}>",
+          "negate": true
+        }
+      },
+      {
+        "id": "1.12",
+        "text": "[LLM-judge] The steps describe a concrete zero-downtime key-rotation procedure (issue new key, migrate clients, then revoke the old key), not vague advice.",
+        "grading": {
+          "method": "llm",
+          "regex_fallback": {
+            "target": "response",
+            "pattern": "(?is)(revoke|old key|new key)"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "name": "prompt-cache-token-accounting-reference",
+    "description": "Asks to capture a researched fact for later reuse. Tests that the skill produces an OKF Reference/Research concept with correct frontmatter and a numbered Citations block.",
+    "prompt": "I dug into how Langfuse handles Anthropic prompt-caching in its token counts \u2014 it treats usage types as mutually exclusive buckets and subtracts cache reads/writes from the top-level input tokens so cost isn't overstated. Capture this as something we can cite later, with the sources. \n\nOutput requirement: reply with ONLY the complete finished document \u2014 the raw file content from its very first line to its last \u2014 inside a single fenced ```markdown code block. Do not create, write, or edit any files. Do not run any commands or tools. Do not add any explanation before or after the code block.",
+    "trap": "Without the skill the model writes an explanatory paragraph with no YAML frontmatter, no type field, and citations as loose links rather than a numbered Citations section.",
+    "assertions": [
+      {
+        "id": "2.1",
+        "text": "Output contains a YAML frontmatter block delimited by two --- lines",
+        "grading": {
+          "method": "regex",
+          "target": "response",
+          "pattern": "(?m)^---\\s*$[\\s\\S]*?^---\\s*$"
+        }
+      },
+      {
+        "id": "2.2",
+        "text": "Frontmatter declares type: Reference or Research",
+        "grading": {
+          "method": "regex",
+          "target": "response",
+          "pattern": "(?mi)^type:\\s*\"?(Reference|Research)\\b"
+        }
+      },
+      {
+        "id": "2.3",
+        "text": "Frontmatter includes a title field",
+        "grading": {
+          "method": "regex",
+          "target": "response",
+          "pattern": "(?mi)^title:\\s*\\S"
+        }
+      },
+      {
+        "id": "2.4",
+        "text": "Frontmatter includes a description field",
+        "grading": {
+          "method": "regex",
+          "target": "response",
+          "pattern": "(?mi)^description:\\s*\\S"
+        }
+      },
+      {
+        "id": "2.5",
+        "text": "Includes a Citations section heading",
+        "grading": {
+          "method": "regex",
+          "target": "response",
+          "pattern": "(?mi)^#+\\s*Citations\\b"
+        }
+      },
+      {
+        "id": "2.6",
+        "text": "Has at least one numbered citation entry like [1] ...",
+        "grading": {
+          "method": "regex",
+          "target": "response",
+          "pattern": "(?m)^\\s*\\[\\d+\\]\\s"
+        }
+      },
+      {
+        "id": "2.7",
+        "text": "Cites a Langfuse source URL",
+        "grading": {
+          "method": "regex",
+          "target": "response",
+          "pattern": "(?i)https?://[^)\\s]*langfuse"
+        }
+      },
+      {
+        "id": "2.8",
+        "text": "Body explains the mutually-exclusive usage buckets concept",
+        "grading": {
+          "method": "regex",
+          "any": [
+            {
+              "target": "response",
+              "pattern": "(?i)mutually[\\s-]exclusive"
+            },
+            {
+              "target": "response",
+              "pattern": "(?i)\\bbuckets?\\b"
+            }
+          ]
+        }
+      },
+      {
+        "id": "2.9",
+        "text": "Body ties cache tokens to the input-token count",
+        "grading": {
+          "method": "regex",
+          "all": [
+            {
+              "target": "response",
+              "pattern": "(?i)cache"
+            },
+            {
+              "target": "response",
+              "pattern": "(?i)input"
+            }
+          ]
+        }
+      },
+      {
+        "id": "2.10",
+        "text": "No unfilled template placeholders like <Investigation title> remain",
+        "grading": {
+          "method": "regex",
+          "target": "response",
+          "pattern": "(?m)<[A-Z][a-zA-Z ./|-]{2,}>",
+          "negate": true
+        }
+      },
+      {
+        "id": "2.11",
+        "text": "[LLM-judge] The note is written as reusable reference material backed by sources, suitable to cite later \u2014 not a throwaway explanation.",
+        "grading": {
+          "method": "llm",
+          "regex_fallback": {
+            "target": "response",
+            "pattern": "(?mi)^#+\\s*Citations\\b"
+          }
+        }
+      }
+    ]
+  }
+]

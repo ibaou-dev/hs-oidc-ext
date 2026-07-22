@@ -1,0 +1,10 @@
+# Copy to `.forbidden-identifiers.txt` (gitignored) and add your real
+# company/user/project names — one POSIX-extended regex per line. The
+# check_no_identifiers pre-commit hook blocks any commit that reintroduces them,
+# keeping a fork's published code free of internal identifiers.
+#
+# Examples (replace with your own):
+# mycompany
+# internal-project-[a-z]+
+# \bjdoe\b
+# @mycompany\.example

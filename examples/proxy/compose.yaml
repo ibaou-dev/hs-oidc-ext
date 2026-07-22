@@ -1,0 +1,33 @@
+# Optional: OIDC SSO in front of the Hindsight control-plane UI.
+#
+# oauth2-proxy authenticates against the same Keycloak realm, then proxies to the
+# SSO shell (run separately as a host process), which wraps the real UI.
+#
+# Prereq: the example stack is up (examples/compose.yaml) and the shell is running:
+#     UPSTREAM=http://127.0.0.1:9998 python3 sso_shell_proxy.py 5155
+# Then:   docker compose -f examples/proxy/compose.yaml up -d
+# Browse: http://localhost:4280
+name: hs-oidc-example-sso
+
+services:
+  oauth2-proxy:
+    image: quay.io/oauth2-proxy/oauth2-proxy:latest
+    container_name: hs-oidc-example-sso
+    network_mode: host
+    restart: unless-stopped
+    command:
+      - --provider=oidc
+      - --oidc-issuer-url=http://localhost:8280/realms/hindsight
+      - --client-id=hindsight
+      - --client-secret=hindsight-dev-secret
+      - --redirect-url=http://localhost:4280/oauth2/callback
+      - --http-address=127.0.0.1:4280
+      - --upstream=http://127.0.0.1:5155
+      - --pass-access-token=true
+      - --backend-logout-url=http://localhost:8280/realms/hindsight/protocol/openid-connect/logout?id_token_hint={id_token}
+      - --cookie-secret=0123456789abcdef0123456789abcdef
+      - --cookie-secure=false
+      - --email-domain=*
+      - --scope=openid email profile
+      - --skip-provider-button=true
+      - --insecure-oidc-allow-unverified-email=true

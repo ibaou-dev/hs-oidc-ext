@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+
+# venvs
+.venv/
+venv/
+env/
+
+# local IdP / server state (examples)
+**/pg0-data/
+**/pat/
+**/*.local.env
+.env
+
+# private deny-list for the no-identifiers hook (never commit real names)
+.forbidden-identifiers.txt
+
+# editors / OS
+.DS_Store
+.idea/
+.vscode/
